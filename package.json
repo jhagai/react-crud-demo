@@ -1,0 +1,35 @@
+{
+  "name": "react-demo",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "font-awesome": "^4.7.0",
+    "moment": "^2.18.1",
+    "react": "^15.5.4",
+    "react-bootstrap": "^0.31.0",
+    "react-dom": "^15.5.4",
+    "react-intl": "^2.2.3",
+    "react-redux": "^5.0.4",
+    "react-widgets": "^3.4.6",
+    "redux": "^3.6.0",
+    "redux-form": "^6.6.3",
+    "redux-persist": "^4.8.0"
+  },
+  "devDependencies": {
+    "body-parser": "^1.17.1",
+    "express": "^4.15.2",
+    "flow-bin": "^0.45.0",
+    "react-router-dom": "^4.1.1",
+    "react-scripts": "0.9.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "flow": "flow",
+    "mock": "node ./src/mock/mock.js"
+  },
+  "proxy": "http://localhost:8000"
+}
