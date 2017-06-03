@@ -15,7 +15,7 @@ import Person from "../../../model/people/Person";
 
 const NB_ENTRY_BY_PAGE = 5;
 
-const RenderResult = (params: {fetchedPeople:People, currentPage:number, person:?Person, changePage:(page: number) => void, selectPerson:(person: ?Person) => void}) => {
+const RenderResult = (params: {submitting:boolean, fetchedPeople:People, currentPage:number, person:?Person, changePage:(page: number) => void, selectPerson:(person: ?Person) => void}) => {
 
     let fetchedPeople: People = params.fetchedPeople;
 
@@ -26,8 +26,14 @@ const RenderResult = (params: {fetchedPeople:People, currentPage:number, person:
 
     let result = (
         <section>
-            <EditModal person={params.person} cancel={() => params.selectPerson(null)}/>
-            <Collapse in={!!success.length}>
+            {
+                // Since the EditModal handles its own display, we shouldn't need to add the following condition on
+                // params.person. However since redux form doesn't reinitialize the form state when updating the initial values, this
+                // seems to be the easiest solution.
+            }
+            {params.person ? <EditModal initialValues={params.person} person={params.person}
+                                        cancel={() => params.selectPerson(null)}/> : null}
+            <Collapse in={!!success.length && !params.submitting}>
                 <section>
                     <Row>
                         <Col xs={12}>
@@ -49,7 +55,7 @@ const RenderResult = (params: {fetchedPeople:People, currentPage:number, person:
                                             <td>{person.id}</td>
                                             <td>{person.firstName}</td>
                                             <td>{person.lastName}</td>
-                                            <td>TODO</td>
+                                            <td>{person.email}</td>
                                             <td>
                                                 <Button bsStyle="primary" onClick={() => params.selectPerson(person)}>
                                                     Edit
@@ -74,7 +80,7 @@ const RenderResult = (params: {fetchedPeople:People, currentPage:number, person:
                     </Row>
                 </section>
             </Collapse>
-            <Collapse in={!!fetchedPeople.error}>
+            <Collapse in={!!fetchedPeople.error && !params.submitting}>
                 <Row>
                     <Col xs={12}>
                         {fetchedPeople.error}
@@ -88,7 +94,7 @@ const RenderResult = (params: {fetchedPeople:People, currentPage:number, person:
 }
 
 
-class Result extends React.PureComponent<any, {fetchedPeople:People}, {currentPage:number, selectedPerson:?Person}> {
+class Result extends React.PureComponent<any, {fetchedPeople:People, submitting:boolean}, {currentPage:number, selectedPerson:?Person}> {
     state: {currentPage:number, selectedPerson:?Person};
 
     constructor(props: {fetchedPeople:People}) {
@@ -98,6 +104,7 @@ class Result extends React.PureComponent<any, {fetchedPeople:People}, {currentPa
 
     render() {
         return RenderResult({
+            submitting: this.props.submitting,
             fetchedPeople: this.props.fetchedPeople,
             currentPage: this.state.currentPage,
             person: this.state.selectedPerson,

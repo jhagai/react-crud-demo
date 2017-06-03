@@ -9,17 +9,19 @@ app.use(bodyParser.json()); // for parsing application/json
 var database = [
     {
         id: 0,
-        firstName: 'Bruce',
-        lastName: 'Wayne',
-        job: 'Billionaire',
+        firstName: 'Clark',
+        lastName: 'Kent',
+        job: 'Journalist',
+        email: 'clark.kent@superman.com',
         ssn: null,
         birthDate: new Date(1938, 5, 1)
     },
     {
         id: 1,
-        firstName: 'Clark',
-        lastName: 'Kent',
-        job: 'Journalist',
+        firstName: 'Bruce',
+        lastName: 'Wayne',
+        job: 'Billionaire',
+        email: 'bruce.wayne@batman.com',
         ssn: null,
         birthDate: new Date(1939, 2, 30)
     },
@@ -86,7 +88,7 @@ app.get('/people', (req, res) => {
 
             var firstName = req.query.firstName;
             if (firstName) {
-                result = database.filter(
+                result = result.filter(
                     function (entry) {
                         return entry.firstName.toUpperCase().indexOf(firstName.toUpperCase()) > -1
                     }
@@ -95,9 +97,27 @@ app.get('/people', (req, res) => {
 
             var lastName = req.query.lastName;
             if (lastName) {
-                result = database.filter(
+                result = result.filter(
                     function (entry) {
                         return entry.lastName.toUpperCase().indexOf(lastName.toUpperCase()) > -1
+                    }
+                );
+            }
+
+            var dobStart = req.query.dobStart
+            if (dobStart) {
+                result = result.filter(
+                    function (entry) {
+                        return entry.birthDate > new Date(parseInt(dobStart, 10));
+                    }
+                );
+            }
+
+            var dobEnd = req.query.dobEnd
+            if (dobEnd) {
+                result = result.filter(
+                    function (entry) {
+                        return entry.birthDate < new Date(parseInt(dobEnd, 10));
                     }
                 );
             }

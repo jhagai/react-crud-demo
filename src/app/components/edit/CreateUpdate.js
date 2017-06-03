@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import {Field, formValueSelector, reduxForm} from "redux-form";
+import {Field, formValueSelector} from "redux-form";
 import {
     Row,
     Col,
@@ -13,8 +13,7 @@ import {
     HelpBlock,
     InputGroup
 } from 'react-bootstrap'
-import {SimpleField} from "../common";
-import SimpleDate from "../common/SimpleDate";
+import {SimpleField, SimpleDate} from "../common";
 import required from "../common/validation/required";
 import email from "../common/validation/email";
 import parseSocialSecurityNumber from './parsers/SocialSecurityCodeParser'
@@ -131,10 +130,10 @@ const getSexValue = (currentValue: {value:string, text:string}, ssn: ?SocialSecu
     return result
 };
 
-const Edit = (props: {ssn:SocialSecurityCode, sex:{value:string, text:string}, change:(field: string, value: any) => any}) => {
+const Edit = (props: {submitting:boolean, ssn:SocialSecurityCode, sex:{value:string, text:string}, change:(field: string, value: any) => any, submitFailed:?boolean}) => {
 
     return (
-        <form noValidate>
+        <section>
             <Row>
                 <Col xs={6}>
                     <Field name="firstName" component={SimpleField} type="text" placeholder="First name"
@@ -199,7 +198,7 @@ const Edit = (props: {ssn:SocialSecurityCode, sex:{value:string, text:string}, c
                     </ListGroup>
                 </Col>
             </Row>
-        </form>
+        </section>
     );
 };
 
@@ -214,14 +213,4 @@ function mapStateToProps(state: State) {
     };
 }
 
-function submitFn(values, dispatch, props) {
-    return props.submitFn(values);
-}
-
-export default connect(mapStateToProps, null)(
-    reduxForm({
-        form: 'edit',  // a unique identifier for this form
-        onSubmit: submitFn,
-        enableReinitialize: true
-    })(Edit)
-)
+export default connect(mapStateToProps)(Edit)

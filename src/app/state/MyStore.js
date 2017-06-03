@@ -10,8 +10,8 @@ export default function configureStore() {
     const store = createStore(combinedReducers,
         //initialState,
         compose(
-            //window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),
-            autoRehydrate()
+            autoRehydrate(),
+            window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
         )
     );
 

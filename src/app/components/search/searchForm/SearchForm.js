@@ -25,7 +25,12 @@ function doFetch(fetchActionDispatcher: ((any) => void), fetchPeopleFailureDispa
 
     let queryString = Object.keys(values).map(
         (key: string) => {
-            return `${key}=${values[key]}`;
+            if (values[key] != null) {
+                if (typeof values[key].getTime === "function") {
+                    return `${key}=${values[key].getTime()}`;
+                }
+                return `${key}=${values[key]}`;
+            }
         }
     ).join('&');
 
@@ -53,6 +58,22 @@ function doFetch(fetchActionDispatcher: ((any) => void), fetchPeopleFailureDispa
         );
 }
 
+const normalizeStartDate = (value, previousValue, allValues) => {
+    let result = value;
+    if (value && allValues['dobEnd'] && value.getTime() > allValues['dobEnd'].getTime()) {
+        result = allValues['dobEnd'];
+    }
+    return result;
+}
+
+const normalizeEndDate = (value, previousValue, allValues) => {
+    let result = value;
+    if (value && allValues['dobStart'] && value.getTime() < allValues['dobStart'].getTime()) {
+        result = allValues['dobStart'];
+    }
+    return result;
+}
+
 type myFormProps = {
     counter:number,
     dobStart:Date,
@@ -66,8 +87,7 @@ type myFormProps = {
 const searchForm = (props: myFormProps) => {
 
     return (
-        <form
-            onSubmit={props.handleSubmit( (values) => doFetch(props.fetchPeople, props.fetchPeopleFailure, values) )}>
+        <form noValidate onSubmit={props.handleSubmit}>
             <Row>
                 <Col xs={6}>
                     <Field name="firstName" component={SimpleField} type="text" placeholder="First name"
@@ -92,7 +112,7 @@ const searchForm = (props: myFormProps) => {
                                     showTime={false}
                                     component={SimpleDate}
                                     max={props.dobEnd}
-                                    normalize={(value, previousValue, allValues) => value && allValues['dobEnd'] && value.getTime() > allValues['dobEnd'] ? allValues['dobEnd'] : value}
+                                    normalize={normalizeStartDate}
                                 />
                             </Col>
                             <Col xs={6}>
@@ -101,7 +121,7 @@ const searchForm = (props: myFormProps) => {
                                     showTime={false}
                                     component={SimpleDate}
                                     min={props.dobStart}
-                                    normalize={(value, previousValue, allValues) => value && allValues['dobStart'] && value.getTime() < allValues['dobStart'] ? allValues['dobStart'] : value}
+                                    normalize={normalizeEndDate}
                                 />
                             </Col>
                         </Row>
@@ -153,8 +173,11 @@ function mapDispatchToProps(dispatch) {
     }, dispatch)
 }
 
-const search = connect(mapStateToProps, mapDispatchToProps)(searchForm);
-
-export default reduxForm({
-    form: 'search',  // a unique identifier for this form
-})(search)
+export default connect(mapStateToProps, mapDispatchToProps)(
+    reduxForm({
+        form: 'search',  // a unique identifier for this form
+        onSubmit: (values, dispatch, props) => {
+            return doFetch(props.fetchPeople, props.fetchPeopleFailure, values);
+        }
+    })(searchForm)
+);

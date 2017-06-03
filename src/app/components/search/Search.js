@@ -9,9 +9,12 @@ import type {People} from "../../model/people/People";
 import State from "../../model/State";
 import Result from './result/Result'
 import SearchForm from './searchForm/SearchForm'
+import { isSubmitting } from 'redux-form';
+
 
 type myFormProps = {
-    fetchedPeople:People
+    fetchedPeople:People,
+    submitting:boolean
 };
 
 const searchForm = (props: myFormProps) => {
@@ -24,15 +27,15 @@ const searchForm = (props: myFormProps) => {
                     <SearchForm/>
                 </Col>
             </Row>
-            <Result fetchedPeople={props.fetchedPeople}/>
+            <Result fetchedPeople={props.fetchedPeople} submitting={props.submitting}/>
         </section>
     );
 }
 
-
 function mapStateToProps(state: State) {
     return {
-        fetchedPeople: state.people
+        fetchedPeople: state.people,
+        submitting: isSubmitting('search')(state)
     }
 }
 

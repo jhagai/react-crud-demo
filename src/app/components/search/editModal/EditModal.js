@@ -2,10 +2,12 @@
 
 import React from 'react';
 import {connect} from "react-redux";
-import {SubmissionError, submit} from "redux-form";
+import {SubmissionError, reduxForm, formValueSelector, submit} from "redux-form";
 import {Modal, Button} from 'react-bootstrap'
-import Edit from '../../edit/Edit'
+import CreateUpdate from '../../edit/CreateUpdate'
 import Person from "../../../model/people/Person";
+import State from "../../../model/State";
+import {SubmitButton, SimpleModal} from '../../common'
 import {bindActionCreators} from "redux";
 
 
@@ -18,9 +20,7 @@ const updatePerson = (personId: number, values) => {
     return fetch(url, {method: 'PUT', headers: myHeaders, body: JSON.stringify(values)})
         .then(
             (res) => {
-                if (res.ok) {
-                    alert('success');
-                } else {
+                if (!res.ok) {
                     throw new SubmissionError(
                         {message: `Bad HTTP status code: ${res.status}`}
                     );
@@ -29,40 +29,71 @@ const updatePerson = (personId: number, values) => {
         ).catch(
             (error) => {
                 if (error && error.message) {
-                    alert(error);
-                    //fetchPeopleFailureDispatcher(`Error while parsing fetched data: ${error.message}`);
+                    throw new SubmissionError(
+                        {_error: error.message}
+                    );
+                } else {
+                    throw new SubmissionError(
+                        {_error: "Update failed."}
+                    );
                 }
             }
         );
 }
 
+type EditModalProps={handleSubmit:any, person:?Person, submitSearch:()=>void, cancel:() => void, submitting:boolean, error:?any, submitSucceeded:boolean, submitFailed:boolean};
 
-const EditModal = (props: {person:?Person, cancel:() => void, submit:any}) => {
+function closeSuccessPopup(props:EditModalProps) {
+    props.cancel();
+    props.submitSearch();
+}
+
+const EditModal = (props: EditModalProps) => {
 
     const personId = props.person ? props.person.id : 0;
     return (
-
-        <div className="static-modal">
-            <Modal show={!!props.person}>
-                <Modal.Header>
-                    <Modal.Title>Edit user data</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Edit initialValues={props.person} submitFn={(values) => updatePerson(personId, values)}/>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button type="submit" bsStyle="primary" onClick={() => props.submit('edit')}>Submit</Button>
-                    <Button onClick={props.cancel}>Cancel</Button>
-                </Modal.Footer>
-            </Modal>
-        </div>
+        <section>
+            <SimpleModal title="Success" body="Update successful" show={props.submitSucceeded && !props.submitting} close={() => closeSuccessPopup(props)}/>
+            <SimpleModal title="Failure" body="Update failed" show={props.submitFailed && props.error && !props.submitting}/>
+            <div className="static-modal">
+                <Modal show={!!props.person && (!props.submitSucceeded || props.submitting)}>
+                    <form noValidate onSubmit={props.handleSubmit((values) => updatePerson(personId, values))}>
+                        <Modal.Header>
+                            <Modal.Title>Edit user data</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <CreateUpdate {...props}/>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <SubmitButton submitting={props.submitting} label="Update"/>
+                            <Button onClick={props.cancel}>Cancel</Button>
+                        </Modal.Footer>
+                    </form>
+                </Modal>
+            </div>
+        </section>
     );
+}
+
+const selector = formValueSelector('edit');
+
+function mapStateToProps(state: State) {
+    const ssn = selector(state, 'ssn');
+    const sex = selector(state, 'sex');
+    return {
+        ssn,
+        sex
+    };
 }
 
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
-        submit
+        submitSearch: () => submit('search')
     }, dispatch)
 }
 
-export default connect(null, mapDispatchToProps)(EditModal)
+export default connect(mapStateToProps, mapDispatchToProps)(
+    reduxForm({
+        form: 'edit'
+    })(EditModal)
+)

@@ -2,10 +2,12 @@
 
 import React from 'react';
 import {connect} from "react-redux";
-import {SubmissionError, submit, isSubmitting} from "redux-form";
-import {Button, Row, Col} from 'react-bootstrap'
-import Edit from '../edit/Edit'
-import {bindActionCreators} from "redux"
+import {SubmissionError, formValueSelector, reduxForm} from "redux-form";
+import {Row, Col} from 'react-bootstrap'
+import CreateUpdate from '../edit/CreateUpdate'
+import State from "../../model/State";
+import {SubmitButton, SimpleModal} from "../common";
+import {bindActionCreators} from "redux";
 
 const createPerson = (values) => {
     let url = '/people';
@@ -13,64 +15,62 @@ const createPerson = (values) => {
     myHeaders.append('Content-Type', 'application/json');
     myHeaders.append('Accept', 'application/json');
 
-    return fetch(url, {method: 'POST', headers: myHeaders, body: JSON.stringify(values)})
-        .then(
-            (res) => {
-                if (res.ok) {
-                    alert('success');
-                } else {
-                    throw new SubmissionError(
-                        {message: `Bad HTTP status code: ${res.status}`}
-                    );
-                }
+    return fetch(url, {method: 'POST', headers: myHeaders, body: JSON.stringify(values)}).then(
+        (res) => {
+            if (!res.ok) {
+                throw new SubmissionError(
+                    {_error: `Bad HTTP status code: ${res.status}`}
+                );
             }
-        ).catch(
-            (error) => {
-                if (error && error.message) {
-                    alert(error);
-                    //fetchPeopleFailureDispatcher(`Error while parsing fetched data: ${error.message}`);
-                }
+        }
+    ).catch(
+        (error) => {
+            if (error && error.message) {
+                throw new SubmissionError({_error: error.message});
+            } else {
+                throw new SubmissionError({_error: 'Creation failed'});
             }
-        );
+        }
+    );
 }
 
 
-const Create = (props: {submit:any, submitting:boolean}) => {
+const Create = (props: {handleSubmit:any, submitting:boolean, submitSucceeded:boolean, submitFailed:boolean, reset:() => void}) => {
     return (
-        <section>
+        <form noValidate onSubmit={props.handleSubmit(createPerson)}>
+            <SimpleModal title="Success" body="Creation successful" show={props.submitSucceeded && !props.submitting} close={props.reset}/>
+            <SimpleModal title="Failure" body="Creation failed" show={props.submitFailed && props.error && !props.submitting}/>
             <Row>
                 <Col xs={12}>
                     <h1 className="page-header">Create</h1>
-                    <Edit submitFn={(values) => createPerson(values)}/>
+                    <CreateUpdate {...props}/>
                 </Col>
             </Row>
             <Row>
                 <Col xs={12}>
                     <div className="text-right">
-                        <Button bsStyle="primary"
-                                disabled={props.submitting} onClick={() => props.submit('edit')}>
-                            {props.submitting ?
-                                <section><i className='fa fa-circle-o-notch fa-spin'></i> Loading
-                                </section> : 'Create' }
-                        </Button>
+                        <SubmitButton submitting={props.submitting} label="Create"/>
                     </div>
                 </Col>
             </Row>
-        </section>
+        </form>
     );
 }
 
-function mapDispatchToProps(dispatch) {
-    return bindActionCreators({
-        submit
-    }, dispatch)
-}
+const selector = formValueSelector('edit');
 
-function mapStateToProps(state) {
+function mapStateToProps(state: State) {
+    const ssn = selector(state, 'ssn');
+    const sex = selector(state, 'sex');
     return {
-        submitting: isSubmitting('edit')(state)
-    }
+        ssn,
+        sex
+    };
 }
 
-
-export default connect(mapStateToProps, mapDispatchToProps)(Create)
+export default connect(mapStateToProps)(
+    reduxForm({
+        form: 'edit',
+        enableReinitialize: true
+    })(Create)
+)

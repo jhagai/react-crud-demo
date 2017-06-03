@@ -24,8 +24,16 @@ const PrivateRoute = connect(mapStateToProps)(withRouter(
             myComponent = () => (
                 <Tabs activeKey={props.location.pathname} onSelect={(key) => {props.history.push(key);}}
                       id="controlled-tab-example">
-                    <Tab eventKey={'/search'} title="Search"><Search/></Tab>
-                    <Tab eventKey={'/create'} title="Create"><Create/></Tab>
+                    <Tab eventKey={'/search'} title="Search">
+                        <Switch>
+                            <Route path="/search" component={Search}/>
+                        </Switch>
+                    </Tab>
+                    <Tab eventKey={'/create'} title="Create">
+                        <Switch>
+                            <Route path="/create" component={Create}/>
+                        </Switch>
+                    </Tab>
                 </Tabs>
             );
         }
