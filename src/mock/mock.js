@@ -69,7 +69,6 @@ var database = [
 
 var callNumber = 0;
 
-
 app.get('/people', (req, res) => {
 
     if (false) {

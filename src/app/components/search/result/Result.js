@@ -33,6 +33,11 @@ const RenderResult = (params: {submitting:boolean, fetchedPeople:People, current
             }
             {params.person ? <EditModal initialValues={params.person} person={params.person}
                                         cancel={() => params.selectPerson(null)}/> : null}
+
+
+            <Row className="text-center" style={{display : params.submitting ? 'block' : 'none'}}>
+                <i className="fa fa-refresh fa-spin" style={{'font-size':'150px'}}></i>
+            </Row>
             <Collapse in={!!success.length && !params.submitting}>
                 <section>
                     <Row>
